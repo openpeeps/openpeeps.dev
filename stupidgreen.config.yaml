@@ -9,7 +9,7 @@ metadata:
   title: "OpenPeeps Blog"
   logo: "/assets/openpeeps.png"
   description: "A blog about open-source software, programming languages and other cool things"
-  url: "https://openpeeps.dev"
+  url: "https://openpeeps.dev/blog"
   author: "George Lemon"
   keywords: ["blog", "openpeeps", "nim", "nim development", "nim lang", "stupidgreen"]
 appearance:
