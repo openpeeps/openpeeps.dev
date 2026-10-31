@@ -1,0 +1,12 @@
+div.container-fluid.my-4 style="min-height:calc(100vh - 150px)"
+  div.row > div.col-xl-9.col-12.mx-auto
+    if $this["intro"] != "":
+      div.row.mb-5 > div.col-12
+        article.intro.content-area: $this["intro"]
+
+    div.row.d-none.mb-4 > div.col-12
+      h1.h3.fw-bold.mb-1: "Latest posts"
+      p.mb-0: $this["config"]["metadata"]["description"]
+
+    @include "post-cards"
+    @include "pagination"

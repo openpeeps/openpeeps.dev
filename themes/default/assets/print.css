@@ -1,0 +1,258 @@
+/* ==========================================================================
+   Print Styles — Book-like PDF: ink-on-paper, no colour
+   ========================================================================== */
+@media print {
+  /* --- Reset & Base --- */
+  *,
+  *::before,
+  *::after {
+    background-image: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    color: #000 !important;
+  }
+
+  html[data-bs-theme='dark']:root {
+    --bs-body-bg: #fff;
+    --bs-body-color: #000;
+  }
+
+  body {
+    font-family: 'Georgia', 'Times New Roman', 'Noto Serif', serif;
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #000;
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* --- Hide non-essential UI chrome --- */
+  .navbar-container-area,
+  .sidebar-navigation,
+  .sidebar-right,
+  .spotlight-autocomplete-item,
+  .dropdown-menu,
+  .dropdown-menu-sm,
+  .btn,
+  a.anchor-link,
+  footer,
+  .footnotes,
+  .d-print-none,
+  .share-icon {
+    display: none !important;
+  }
+
+  /* --- Page layout: single-column, centred content --- */
+  .content-area,
+  article.content-area {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* --- Headings --- */
+  h1, h2, h3, h4, h5, h6 {
+    color: #000;
+    font-family: 'Georgia', 'Times New Roman', 'Noto Serif', serif;
+    font-weight: bold;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  h1 {
+    font-size: 22pt;
+    border-bottom: 0.5pt solid #999;
+    padding-bottom: 6pt;
+  }
+
+  h2 {
+    font-size: 17pt;
+    margin-top: 1.6em;
+  }
+
+  h3 {
+    font-size: 14pt;
+  }
+
+  /* --- Links: underline, show URL for external --- */
+  a {
+    color: #000;
+    text-decoration: underline;
+    border-bottom: none;
+  }
+
+  a[href^="#"] {
+    display: none;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
+    word-break: break-all;
+  }
+
+  a.external::after {
+    display: none;
+  }
+
+  /* --- Images --- */
+  img {
+    max-width: 100% !important;
+    border: 0.5pt solid #ccc;
+    border-radius: 2px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* --- Code blocks: ink-style, no dark bg --- */
+  pre {
+    background-color: transparent !important;
+    color: #000 !important;
+    border: 0.5pt solid #bbb;
+    border-radius: 2px;
+    padding: 10px 12px;
+    font-size: 9pt;
+    line-height: 1.5;
+    font-family: 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    overflow-x: visible;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    max-height: none;
+  }
+
+  pre code.hljs,
+  code.hljs {
+    background: transparent !important;
+    padding: 0;
+  }
+
+  /* --- Syntax highlighting: ink grays --- */
+  .hljs-comment, .hljs-quote { color: #666 !important; font-style: italic; }
+  .hljs-keyword, .hljs-selector-tag, .hljs-addition { color: #000 !important; font-weight: bold; }
+  .hljs-string, .hljs-attr { color: #333 !important; }
+  .hljs-number, .hljs-literal, .hljs-built_in { color: #000 !important; }
+  .hljs-title, .hljs-section, .hljs-selector-id { color: #000 !important; font-weight: bold; }
+  .hljs-type, .hljs-selector-class { color: #000 !important; font-style: italic; }
+  .hljs-variable, .hljs-template-variable, .hljs-params { color: #222 !important; }
+  .hljs-symbol, .hljs-bullet { color: #444 !important; }
+  .hljs-deletion { color: #000 !important; text-decoration: line-through; }
+  .hljs-tag { color: #000 !important; }
+  .hljs-name { color: #000 !important; }
+  .hljs-attribute { color: #333 !important; }
+  .hljs-emphasis { font-style: italic; }
+  .hljs-strong { font-weight: bold; }
+
+  /* --- Inline code --- */
+  code {
+    background: transparent !important;
+    border: 0.5pt solid #bbb;
+    border-radius: 2px;
+    padding: 1px 4px;
+    font-family: 'Menlo', 'Consolas', 'DejaVu Sans Mono', monospace;
+    font-size: 9.5pt;
+    color: #000;
+  }
+
+  /* --- Lists --- */
+  ul, ol {
+    padding-left: 2em;
+  }
+
+  ul li, ol li {
+    margin-bottom: 0.25em;
+  }
+
+  ul li input {
+    display: none;
+  }
+
+  /* --- Tables --- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    font-size: 10pt;
+  }
+
+  th, td {
+    border: 0.5pt solid #999;
+    padding: 6px 10px;
+    text-align: left;
+  }
+
+  th {
+    font-weight: bold;
+    border-bottom: 1pt solid #666;
+  }
+
+  /* --- Alerts / callouts: simple bordered boxes --- */
+  .alert {
+    border: 0.5pt solid #999;
+    border-left: 2pt solid #000;
+    border-radius: 2px;
+    padding: 10px 14px;
+    margin: 1em 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .alert .alert-content {
+    background: transparent !important;
+    padding: 0;
+  }
+
+  .alert .alert-content::after {
+    display: none;
+  }
+
+  /* --- Blockquotes --- */
+  blockquote {
+    border-left: 1.5pt solid #999;
+    padding-left: 1em;
+    color: #333;
+    font-style: italic;
+    margin: 1em 0;
+  }
+
+  /* --- Strong / bold --- */
+  .content-area strong,
+  strong {
+    color: #000;
+  }
+
+  /* --- Mark (highlight) --- */
+  mark {
+    background-color: transparent !important;
+    color: #000;
+    text-decoration: underline;
+  }
+
+  /* --- Page breaks --- */
+  h1, h2 {
+    page-break-before: auto;
+    page-break-after: avoid;
+  }
+
+  pre, table, img, .alert {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* --- Page margins --- */
+  @page {
+    margin: 2.5cm 3cm;
+    size: A4;
+  }
+}

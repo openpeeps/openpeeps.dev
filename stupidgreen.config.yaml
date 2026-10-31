@@ -1,0 +1,83 @@
+server:
+  address: "127.0.0.1"
+  port: 8000
+  threads: 1
+  unix: false
+mode: "blog"
+theme: "default"
+metadata:
+  title: "OpenPeeps Blog"
+  logo: "/assets/openpeeps.png"
+  description: "A blog about open-source software, programming languages and other cool things"
+  url: "https://openpeeps.dev"
+  author: "George Lemon"
+  keywords: ["blog", "openpeeps", "nim", "nim development", "nim lang", "stupidgreen"]
+appearance:
+  show_theme_switcher: true
+  default_theme: "system"
+  container_width: "col-lg-10 mx-auto"
+  content_width: "col-lg-8"
+  background_noise_opacity: 0.03
+header:
+  search:
+    enable: true
+    index_meta_data: true
+    index_page_titles: true
+content:
+  allowedRawHtmlTags:
+    - "b"
+    - "i"
+    - "strong"
+    - "em"
+    - "a"
+    - "p"
+    - "ul"
+    - "ol"
+    - "li"
+  showReadingTime: true
+  showLastUpdated: true
+  lastDateUpdatedFormat: "yyyy-MM-dd HH:mm:ss"
+  enableAutoFormatLinks: true
+  bottom_navigation: true
+  codeHighlightTheme: "default"
+  excerpt_length: 160
+  readMoreText: "Continue reading this story"
+  lazyloadIframes: false
+  lazyloadVideos: false
+  lazyloadImages: false
+  slugFromTitle: true
+  postReferences: true
+pagination:
+  per_page: 10
+feed:
+  enable: true
+  limit: 20
+  kind: "rss"
+activitypub:
+  enable: false
+  username: "blog"
+  name: "StupidGreen Blog"
+  summary: "Posts from a StupidGreen blog, federated over ActivityPub."
+  icon: "/assets/stupidgreen.png"
+navbar:
+  - title: "Home"
+    url: "/"
+  - title: "About"
+    url: "/about"
+footer:
+  text: "&copy; 2026 OpenPeeps — All rights reserved"
+  links:
+    - title: "OpenPeeps GitHub"
+      url: "https://github.com/openpeeps"
+
+    - title: "Supranim GitHub"
+      url: "https://github.com/supranim"
+
+    - title: "Nimbase GitHub"
+      url: "https://github.com/nimbase"
+
+    - title: "Subscribe to RSS"
+      url: "/feed.xml"
+
+    - title: "LLMs.txt"
+      url: "/llms.txt"
