@@ -4,7 +4,7 @@ div.navbar-container-area.sticky-top.user-select-none.row > div.col-lg-6.mx-auto
   nav.navbar.navbar-expand-lg.py-2
     div.container-fluid.d-flex
       a.navbar-brand.fw-bold.py-0 href="/"
-        img src=$this["site"]["url"] & $this["site"]["logo"] alt=$this["site"]["title"] height="32"
+        img src=url($this["site"]["logo"]) alt=$this["site"]["title"] height="32"
       if $this["config"]["header"]["search"]["enable"] == true:
         div.col-6.col-lg-5
           form.spotlight-form.d-flex.ms-3.mb-0.position-relative action=$this["site"]["url"] & "/search" method="GET"

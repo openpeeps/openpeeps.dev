@@ -4,16 +4,18 @@ html data-bs-theme="dark"
     title: $this["config"]["metadata"]["title"] & " &mdash; " & $this["config"]["metadata"]["description"]
     meta name="viewport" content="width=device-width, initial-scale=1"
     meta name="description" content=$this["config"]["metadata"]["description"]
-    link rel="icon" href="/assets/favicon-32x32.png" type="image/x-icon"
-    link rel="stylesheet" href=$this["site"]["url"] & "/assets/bootstrap.min.css"
-    link rel="stylesheet" href=$this["site"]["url"] & "/assets/style.css"
-    link rel="stylesheet" href=$this["site"]["url"] & "/assets/print.css" media="print"
-    if $this["config"]["mode"] != "pages" and $this["config"]["feed"]["enable"] == "true":
-      if $this["config"]["feed"]["kind"] == "atom":
-        link rel="alternate" type="application/atom+xml" title="Atom Feed" href=$this["site"]["url"] & "/feed.xml"
-      else:
-        link rel="alternate" type="application/rss+xml" title="RSS Feed" href=$this["site"]["url"] & "/feed.xml"
-    link rel="alternate" type="text/plain" title="llms.txt" href=$this["site"]["url"] & "/llms.txt"
+    link rel="icon" href=url("/assets/favicon-32x32.png") type="image/x-icon"
+    link rel="stylesheet" href=url("/assets/bootstrap.min.css")
+    link rel="stylesheet" href=url("/assets/style.css")
+    link rel="stylesheet" href=url("/assets/sweetsyntax.css")
+    link rel="stylesheet" href=url("/assets/print.css") media="print"
+    if $this["config"]["mode"] != "pages":
+      if $this["config"]["feed"]["enable"]:
+        if $this["config"]["feed"]["kind"] == "atom":
+          link rel="alternate" type="application/atom+xml" title="Atom Feed" href=url("/feed.xml")
+        else:
+          link rel="alternate" type="application/rss+xml" title="RSS Feed" href=url("/feed.xml")
+    link rel="alternate" type="text/plain" title="llms.txt" href=url("/llms.txt")
 
   body
     div.container-fluid > div.row > div.col-lg-12
@@ -35,9 +37,9 @@ html data-bs-theme="dark"
           " &mdash; Made by Humans from "
           a href="https://openpeeps.dev": "OpenPeeps"
 
-    script src=$this["site"]["url"] & "/assets/bootstrap.min.js"
-    script src=$this["site"]["url"] & "/assets/highlight.min.js"
-    script type="text/javascript" src=$this["site"]["url"] & "/assets/app.js"
+    script src=url("/assets/bootstrap.min.js")
+    script src=url("/assets/highlight.min.js")
+    script type="text/javascript" src=url("/assets/app.js")
 
     if $this["config"]["content"]["lazyloadIframes"] or
        $this["config"]["content"]["lazyloadVideos"] or
