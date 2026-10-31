@@ -5,35 +5,15 @@ html data-bs-theme="dark"
     meta name="viewport" content="width=device-width, initial-scale=1"
     meta name="description" content=$this["config"]["metadata"]["description"]
     link rel="icon" href="/assets/favicon-32x32.png" type="image/x-icon"
-    link rel="stylesheet" href="/assets/bootstrap.min.css"
-    link rel="stylesheet" href="/assets/style.css"
-    link rel="stylesheet" href="/assets/print.css" media="print"
+    link rel="stylesheet" href=$this["site"]["url"] & "/assets/bootstrap.min.css"
+    link rel="stylesheet" href=$this["site"]["url"] & "/assets/style.css"
+    link rel="stylesheet" href=$this["site"]["url"] & "/assets/print.css" media="print"
     if $this["config"]["mode"] != "pages" and $this["config"]["feed"]["enable"] == "true":
       if $this["config"]["feed"]["kind"] == "atom":
         link rel="alternate" type="application/atom+xml" title="Atom Feed" href=$this["site"]["url"] & "/feed.xml"
       else:
         link rel="alternate" type="application/rss+xml" title="RSS Feed" href=$this["site"]["url"] & "/feed.xml"
     link rel="alternate" type="text/plain" title="llms.txt" href=$this["site"]["url"] & "/llms.txt"
-
-    const bgNoise = toFloat($this["config"]["appearance"]["background_noise_opacity"])
-    if $bgNoise > 0:
-      style: """
-body:before {
-  content: "";
-  display: block;
-  background-image: url("/assets/image.png");
-  background-repeat: repeat;
-  background-size: 257px auto;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-  z-index: 99999;
-  opacity: """ & $bgNoise & """;
-}
-      """
 
   body
     div.container-fluid > div.row > div.col-lg-12
@@ -55,9 +35,9 @@ body:before {
           " &mdash; Made by Humans from "
           a href="https://openpeeps.dev": "OpenPeeps"
 
-    script src="/assets/bootstrap.min.js"
-    script src="/assets/highlight.min.js"
-    script type="text/javascript" src="/assets/app.js"
+    script src=$this["site"]["url"] & "/assets/bootstrap.min.js"
+    script src=$this["site"]["url"] & "/assets/highlight.min.js"
+    script type="text/javascript" src=$this["site"]["url"] & "/assets/app.js"
 
     if $this["config"]["content"]["lazyloadIframes"] or
        $this["config"]["content"]["lazyloadVideos"] or
