@@ -23,7 +23,7 @@ html data-bs-theme="dark" data-lang=$this["currentLang"]
   body
     div.container-fluid > div.row > div.col-lg-12
       @include "header"
-      div.row > div.container > div.row > div.col-lg-6.mx-auto
+      div.row > div.container > div.row > div.col-lg-7.mx-auto
         // The `@view` macro is a special macro that injects
         // the content of the specific view into this layout.
         @view
