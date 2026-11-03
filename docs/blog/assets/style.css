@@ -323,8 +323,9 @@ a.external:hover::after {
 }
 
 a.anchor-link {
-  box-shadow: none !important;
   border: 0;
+  font-size: 0.9rem;
+  box-shadow: none !important;
   padding: var(--space-sm);
 }
 
