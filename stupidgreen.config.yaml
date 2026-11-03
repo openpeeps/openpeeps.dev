@@ -75,8 +75,6 @@ assets:
   bundle: true
   css: ["bootstrap.min.css", "style.css", "sweetsyntax.css", "print.css"]
   js: ["app.js"]
-  mangle: false
-  sourcemap: false
 footer:
   links:
     - title: "OpenPeeps GitHub"
