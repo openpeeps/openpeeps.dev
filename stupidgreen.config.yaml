@@ -7,7 +7,7 @@ mode: "blog"
 theme: "default"
 metadata:
   title: "OpenPeeps Blog"
-  logo: "/cache/openpeeps.png"
+  logo: "/assets/openpeeps.png"
   description: "A blog about open-source software, programming languages and other cool things"
   url: "https://openpeeps.dev/blog"
   author: "George Lemon"
@@ -65,7 +65,7 @@ activitypub:
   username: "blog"
   name: "StupidGreen Blog"
   summary: "Posts from a StupidGreen blog, federated over ActivityPub."
-  icon: "/cache/stupidgreen.png"
+  icon: "/assets/stupidgreen.png"
 navbar:
   - title: "Home"
     url: "/"
