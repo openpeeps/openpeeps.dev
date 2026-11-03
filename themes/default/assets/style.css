@@ -30,7 +30,6 @@ html[data-bs-theme="dark"] {
   --text-footnote: 0.8rem;
   --text-footnote-line-height: 1.3rem;
   --text-alert: 0.90rem;
-  --text-dropdown: 0.85em;
   --text-post-ref-title: 1em;
   --text-post-ref-excerpt: 0.82em;
   --text-post-ref-date: 0.8em;
@@ -181,12 +180,8 @@ html[data-bs-theme="light"] {
 
 body {
   background-color: var(--color-bg);
-  background-attachment: fixed;
   color: var(--color-ink);
   font-family: var(--font-family-base);
-}
-
-body {
   font-size: var(--text-small);
   line-height: var(--tw-leading, var(--text-small-line-height));
   letter-spacing: var(--tw-tracking, var(--text-small-letter-spacing));
@@ -240,6 +235,22 @@ article.content-area img {
 
 article.post-card .card-text {
   font-size: var(--text-card);
+}
+
+.toc-sidebar {
+  font-size: .90rem;
+}
+
+.toc-sidebar li {
+  line-height: normal;
+}
+
+.toc-sidebar li a {
+  opacity:.70;
+}
+
+.toc-sidebar li a:hover {
+  opacity:1;
 }
 
 /*
@@ -361,6 +372,7 @@ mark {
 */
 
 .navbar-container-area {
+  background-image:linear-gradient(180deg, #161615 0%, transparent);
   margin-top: var(--space-3xl);
   width: 100%;
 }
@@ -447,6 +459,10 @@ mark {
   left: -20px;
   right: 0;
   animation: rotateAnimation 5s linear infinite;
+}
+
+.navbar-nav a {
+  font-size: 1rem;
 }
 
 .spotlight-autocomplete-item:hover {
@@ -590,30 +606,33 @@ mark {
 }
 
 /*
-   Dropdowns
+   Share actions (post page)
 */
 
-.dropdown-menu-sm {
-  font-size: var(--text-dropdown);
-  padding-top: var(--space-xs);
-  padding-bottom: var(--space-xs);
+.share-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
 }
 
-.dropdown-menu-sm li {
-  padding: 0 4px;
+.share-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
 }
 
-.dropdown-menu-sm .dropdown-item {
-  padding: 2px 10px;
-  line-height: 1.3;
-  margin-bottom: var(--space-xs);
-  border-radius: var(--radius-lg);
+.share-actions .share-icon {
+  display: inline-flex;
+  line-height: 0;
 }
 
-.dropdown-menu a.external::after {
-  position: absolute;
-  top: 5px;
-  right: 5px;
+.share-actions .share-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.share-actions .btn.is-copied {
+  border-color: rgba(46, 255, 147, 0.6);
 }
 
 /*

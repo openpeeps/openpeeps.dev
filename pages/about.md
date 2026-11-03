@@ -10,7 +10,7 @@ servers, command-line tools, databases, cryptography, and developer tooling.
 Most projects are tiny, dependency-light, and meant to be used as standalone applications or
 dropped straight into your own Nim applications.
 
-This blog, is where we will write about open source, free or commercial projects,
+This blog is where we will write about open source, free or commercial projects,
 Nim development, alternative tools and whatever else shows up along the way: LLMs, browser
 automation, CSS preprocessors, static site generators, and other experiments.
 

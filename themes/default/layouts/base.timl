@@ -1,4 +1,4 @@
-html data-bs-theme="dark"
+html data-bs-theme="dark" data-lang=$this["currentLang"]
   head
     meta charset="utf-8"
     title: $this["config"]["metadata"]["title"] & " &mdash; " & $this["config"]["metadata"]["description"]
@@ -16,6 +16,9 @@ html data-bs-theme="dark"
         else:
           link rel="alternate" type="application/rss+xml" title="RSS Feed" href=url("/feed.xml")
     link rel="alternate" type="text/plain" title="llms.txt" href=url("/llms.txt")
+    if $this["currentLang"] != "":
+      for $tr in items($this["translations"]):
+        link rel="alternate" hreflang=$tr["lang"] href=url($tr["url"])
 
   body
     div.container-fluid > div.row > div.col-lg-12
@@ -37,9 +40,8 @@ html data-bs-theme="dark"
           " &mdash; Made by Humans from "
           a href="https://openpeeps.dev": "OpenPeeps"
 
-    script src=url("/assets/bootstrap.min.js")
-    script src=url("/assets/highlight.min.js")
     script type="text/javascript" src=url("/assets/app.js")
+    script type="text/javascript" src=url("/assets/share.js")
 
     if $this["config"]["content"]["lazyloadIframes"] or
        $this["config"]["content"]["lazyloadVideos"] or

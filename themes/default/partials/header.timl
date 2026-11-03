@@ -1,4 +1,4 @@
-div.navbar-container-area.sticky-top.user-select-none.row > div.col-lg-6.mx-auto
+div.navbar-container-area.sticky-top.user-select-none.row > div.col-lg-7.mx-auto
   if $this["site"]["hasNotifications"] == true:
     div.text-center.border-bottom.border-dark.p-1.small: $this["config"]["header"]["notification"]
   nav.navbar.navbar-expand-lg.py-2
@@ -17,3 +17,11 @@ div.navbar-container-area.sticky-top.user-select-none.row > div.col-lg-6.mx-auto
             for $navItem in items($this["config"]["navbar"]):
               li.nav-item.mx-1
                 a.nav-link.fw-medium href=url($navItem["url"]): $navItem["title"]
+        if $this["currentLang"] != "":
+          if len($this["translations"]) > 1:
+            select.language-switcher.form-select.form-select-sm.w-auto.ms-3.rounded-3 aria-label="Language" onchange="location=this.value"
+              for $tr in items($this["translations"]):
+                if $tr["lang"] != $this["currentLang"]:
+                  option value=$tr["url"]: $tr["lang"]
+                else:
+                  option value=$tr["url"] selected="selected": $tr["lang"]
