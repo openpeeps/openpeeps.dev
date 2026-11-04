@@ -305,7 +305,7 @@ a.external {
   margin-right: 15px;
 }
 
-a.external:not(.no-external)::after {
+a.external::after {
   content: "↗";
   margin-left: 4px;
   text-decoration: none;

@@ -35,7 +35,7 @@ const defaultAppOpts = {
  */
 const reloadCallbacks = [];
 
-export default {
+const UI = {
   /**
    * Initialize the application with the given options.
    * This function sets up the UI features based on the provided options.
@@ -48,7 +48,9 @@ export default {
    *
   */
   init: function(opts = defaultAppOpts) {
-    console.log("Booyaka Initialized");
+    if (this._initialized) return this;
+    this._initialized = true;
+    console.log("StupidGreen Initialized. More about SG here: https://github.com/openpeeps/stupidgreen");
     opts.enableStickySidebar && this.initStickySidebar();
     opts.enableTimeAgo && this.initTimeAgo()
     opts.enableAnimatedAlerts && this.initAnimatedAlerts();
@@ -57,6 +59,7 @@ export default {
     this.initExternalLinksDecorator();
     this.initSpotlightSearch();
     this.initShareMarkdown();
+    this.initShareButtons();
 
     const fetchSwapCallback = function() {
       opts.enableStickySidebar && this.initStickySidebar();
@@ -67,6 +70,7 @@ export default {
       this.initSmoothAnchors();
       this.initExternalLinksDecorator();
       this.initShareMarkdown();
+      this.initShareButtons();
 
       sidebarNavigation.querySelectorAll('a').forEach(link => link.classList.remove('active', 'bg-dark'));
       // after fetching new content, we want to make the current page's link active in the sidebar
@@ -402,6 +406,55 @@ export default {
     });
   },
 
+  initShareButtons: function() {
+    const flashCopied = (btn) => {
+      const label = btn.querySelector('.share-label');
+      if (!label) return;
+      if (!label.dataset.original) label.dataset.original = label.textContent;
+      label.textContent = 'Copied!';
+      btn.classList.add('is-copied');
+      setTimeout(() => {
+        label.textContent = label.dataset.original;
+        btn.classList.remove('is-copied');
+      }, 1500);
+    };
+    const fallbackCopy = (text, btn) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) { /* clipboard unavailable */ }
+      document.body.removeChild(ta);
+      flashCopied(btn);
+    };
+    const copyText = (text, btn) => {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => flashCopied(btn)).catch(() => fallbackCopy(text, btn));
+      } else {
+        fallbackCopy(text, btn);
+      }
+    };
+    document.querySelectorAll('[data-share-url]').forEach(btn => {
+      if (btn.dataset.shareBound) return;
+      btn.dataset.shareBound = '1';
+      btn.addEventListener('click', () => copyText(window.location.href, btn));
+    });
+    document.querySelectorAll('[data-share-md]').forEach(btn => {
+      if (btn.dataset.shareBound) return;
+      btn.dataset.shareBound = '1';
+      btn.addEventListener('click', () => {
+        const el = document.querySelector('#share-markdown-content');
+        if (!el) return;
+        try {
+          copyText(JSON.parse(el.textContent).markdown, btn);
+        } catch (e) { /* invalid markdown payload */ }
+      });
+    });
+  },
+
   initExternalLinksDecorator: function() {
     // Function to check if a link is external
     function isExternalLink(anchor) {
@@ -480,6 +533,12 @@ export default {
     });
   }
 }
+
+export default UI;
+
+// Expose globally: base.timl initializes the app from a classic
+// inline script (`UI.init(...)`), which cannot see module scope.
+window.UI = UI;
 
 document.addEventListener('DOMContentLoaded', () => {
   UI.init({
