@@ -694,6 +694,14 @@ mark {
   color: var(--bs-body-color, inherit);
 }
 
+.table {
+  font-size: 14px !important;
+}
+
+.table td {
+  padding: 0px !important;
+}
+
 /*
    Footer
 */

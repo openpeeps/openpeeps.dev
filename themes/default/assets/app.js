@@ -58,7 +58,6 @@ const UI = {
     this.initSmoothAnchors();
     this.initExternalLinksDecorator();
     this.initSpotlightSearch();
-    this.initShareMarkdown();
     this.initShareButtons();
 
     const fetchSwapCallback = function() {
@@ -69,15 +68,16 @@ const UI = {
     
       this.initSmoothAnchors();
       this.initExternalLinksDecorator();
-      this.initShareMarkdown();
       this.initShareButtons();
 
-      sidebarNavigation.querySelectorAll('a').forEach(link => link.classList.remove('active', 'bg-dark'));
-      // after fetching new content, we want to make the current page's link active in the sidebar
-      const currentPath = location.pathname;
-      const activeLink = sidebarNavigation.querySelector(`a[href="${currentPath}"]`);
-      if (activeLink) {
-        activeLink.classList.add('active', 'bg-dark');
+      if (sidebarNavigation) {
+        sidebarNavigation.querySelectorAll('a').forEach(link => link.classList.remove('active', 'bg-dark'));
+        // after fetching new content, we want to make the current page's link active in the sidebar
+        const currentPath = location.pathname;
+        const activeLink = sidebarNavigation.querySelector(`a[href="${currentPath}"]`);
+        if (activeLink) {
+          activeLink.classList.add('active', 'bg-dark');
+        }
       }
 
       this.triggerReload();
@@ -123,162 +123,242 @@ const UI = {
     });
   },
 
-  // Initialize the spotlight search feature using Fuse.js for client-side fuzzy searching.
+  // Initialize client-side search (Fuse.js) for every search form on the page.
+  // Forms with `data-results-target` render full results inline (the /search page);
+  // all other forms get a spotlight autocomplete dropdown (the header).
   initSpotlightSearch: function() {
-    fetch("/results.json").then(response => response.json()).then(data => {
-      if(!data) return;
-      let spotlightForm = document.querySelector('.spotlight-form');
-      let spotlightAutocomplete = document.createElement('div');
-      spotlightAutocomplete.classList.add('position-fixed', 'border', 'border-dark', 'list-unstyled', 'w-100', 'rounded-4', 'p-2', 'd-none', 'spotlight-autocomplete');
-      spotlightAutocomplete.style.top = '68px'
-      spotlightAutocomplete.style.zIndex = '1050';
-      spotlightAutocomplete.style.maxWidth = spotlightForm.offsetWidth + 'px';
-      spotlightAutocomplete.style.left = spotlightForm.getBoundingClientRect().left + 'px';
-      spotlightAutocomplete.style.backgroundColor = 'rgba(10,14,14,0.60)';
-      spotlightAutocomplete.style.boxShadow = '0 30px 30px rgba(0,0,0,.8)';
-      spotlightAutocomplete.style.backdropFilter = 'blur(34px)';
-      
-      spotlightAutocomplete.style.maxHeight = '280px';
+    const forms = document.querySelectorAll('.spotlight-form');
+    if (!forms.length) return;
+    forms.forEach(form => this.initSearchForm(form));
+  },
 
-      let spotlightInner = document.createElement('ul');
-      spotlightInner.classList.add('m-0', 'p-0', 'spotlight-autocomplete-list');
-      spotlightInner.style.overflowX = 'scroll';
-      spotlightInner.style.maxHeight = '260px';
-      
-      spotlightAutocomplete.appendChild(spotlightInner);
-      document.body.insertAdjacentElement('beforeend', spotlightAutocomplete);
-
-      // Create Fuse instance
-      let fuse = new Fuse(data.results, {
-        keys: ['title', 'description', 'headings'],
-        minMatchCharLength: 4, // Only match longer substrings
-        includeMatches: true,
-        threshold: 0.1, // Stricter matching
-        distance: 500,
-        useExtendedSearch: true, // Enable extended search
-        findAllMatches: false,   // Only best matches
-      });
-
-      // clicking outside the autocomplete closes it
-      document.addEventListener('click', function(event) {
-        if (!spotlightForm.contains(event.target)) {
-          spotlightAutocomplete.classList.add('d-none');
+  initSearchForm: function(form) {
+    const input = form.querySelector('.spotlight');
+    if (!input) return;
+    // Derive the site base from the form's own action so search works
+    // under subpath deployments (/blog/...) in every environment.
+    let siteBase = '';
+    try {
+      const actionPath = new URL(form.action, window.location.href).pathname;
+      siteBase = actionPath.replace(/\/search\/?$/, '');
+    } catch (e) { /* keep site base empty */ }
+    const resultsUrl = form.dataset.resultsUrl || (siteBase + '/results.json');
+    const resolveUrl = (url) => siteBase + '/' + String(url || '').replace(/^\//, '');
+    fetch(resultsUrl)
+      .then(response => {
+        if (!response.ok) throw new Error('Search index not found');
+        return response.json();
+      })
+      .then(data => {
+        if (!data || !data.results) return;
+        const fuse = new Fuse(data.results, {
+          keys: ['title', 'description', 'headings'],
+          minMatchCharLength: 2,
+          includeMatches: true,
+          threshold: 0.35,
+          ignoreLocation: true,
+          findAllMatches: false,
+        });
+        const pageLang = document.documentElement.dataset.lang || '';
+        const runQuery = (query) => fuse.search(query).filter(r =>
+          !pageLang || (r.item.lang || '') === pageLang);
+        const targetSelector = form.dataset.resultsTarget;
+        const target = targetSelector ? document.querySelector(targetSelector) : null;
+        if (target) {
+          this.initInlineResults(form, input, target, runQuery, resolveUrl);
+        } else {
+          this.initAutocomplete(form, input, runQuery, resolveUrl);
         }
-      });
-      
-      // pressing cmd/ctrl + / focuses the search input
-      var isSpotlightFocused = false;
-      spotlightForm.querySelector('.spotlight').addEventListener('click', function() {
+      })
+      .catch(() => { /* search index unavailable; forms fall back to plain GET */ });
+  },
+
+  // Full results list for the dedicated /search page (pure CSR).
+  initInlineResults: function(form, input, target, runQuery, resolveUrl) {
+    const renderResults = (query) => {
+      const results = runQuery(query);
+      target.innerHTML = '';
+      if (!results.length) {
+        target.innerHTML = '<p class="text-muted">No results found.</p>';
+        return;
+      }
+      for (const r of results) {
+        const a = document.createElement('a');
+        a.href = resolveUrl(r.item.url);
+        a.className = 'd-block text-decoration-none mb-3';
+        const title = document.createElement('span');
+        title.className = 'd-block fw-bold';
+        title.textContent = r.item.title;
+        a.appendChild(title);
+        if (r.item.description) {
+          const desc = document.createElement('span');
+          desc.className = 'text-muted small d-block';
+          desc.textContent = r.item.description;
+          a.appendChild(desc);
+        }
+        target.appendChild(a);
+      }
+    };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const query = input.value.trim();
+      if (query.length < 2) return;
+      renderResults(query);
+    });
+    input.addEventListener('input', (e) => {
+      const query = e.target.value.trim();
+      if (query.length < 2) {
+        target.innerHTML = '<p class="text-muted">No results yet.</p>';
+        return;
+      }
+      renderResults(query);
+    });
+    // Run the query from ?q= on direct loads (plain GET fallback submits here)
+    try {
+      const initial = (new URLSearchParams(window.location.search).get('q') || '').trim();
+      if (initial.length >= 2) {
+        input.value = initial;
+        renderResults(initial);
+      }
+    } catch (e) { /* URLSearchParams unavailable */ }
+  },
+
+  // Spotlight autocomplete dropdown for the header search form.
+  initAutocomplete: function(form, input, runQuery, resolveUrl) {
+    const spotlightAutocomplete = document.createElement('div');
+    spotlightAutocomplete.classList.add('position-fixed', 'border', 'border-dark', 'list-unstyled', 'w-100', 'rounded-4', 'p-2', 'd-none', 'spotlight-autocomplete');
+    spotlightAutocomplete.style.top = '68px';
+    spotlightAutocomplete.style.zIndex = '1050';
+    spotlightAutocomplete.style.maxWidth = form.offsetWidth + 'px';
+    spotlightAutocomplete.style.left = form.getBoundingClientRect().left + 'px';
+    spotlightAutocomplete.style.backgroundColor = 'rgba(10,14,14,0.60)';
+    spotlightAutocomplete.style.boxShadow = '0 30px 30px rgba(0,0,0,.8)';
+    spotlightAutocomplete.style.backdropFilter = 'blur(34px)';
+    spotlightAutocomplete.style.maxHeight = '280px';
+
+    const spotlightInner = document.createElement('ul');
+    spotlightInner.classList.add('m-0', 'p-0', 'spotlight-autocomplete-list');
+    spotlightInner.style.overflowX = 'scroll';
+    spotlightInner.style.maxHeight = '260px';
+
+    spotlightAutocomplete.appendChild(spotlightInner);
+    document.body.insertAdjacentElement('beforeend', spotlightAutocomplete);
+
+    // clicking outside the autocomplete closes it
+    document.addEventListener('click', function(event) {
+      if (!form.contains(event.target)) {
+        spotlightAutocomplete.classList.add('d-none');
+      }
+    });
+
+    // pressing cmd/ctrl + / focuses the search input
+    var isSpotlightFocused = false;
+    input.addEventListener('click', function() {
+      isSpotlightFocused = true;
+    });
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === '/' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        input.focus();
         isSpotlightFocused = true;
-      });
-
-      document.addEventListener('keydown', function(event) {
-        if (event.key === '/' && (event.metaKey || event.ctrlKey)) {
+      }
+      // handle arrow keys and enter for navigating the autocomplete list
+      if (isSpotlightFocused) {
+        const items = spotlightAutocomplete.querySelectorAll('.spotlight-autocomplete-item');
+        var index = Array.from(items).findIndex(item => item.classList.contains('active'));
+        if (event.key === 'ArrowDown') {
           event.preventDefault();
-          spotlightForm.querySelector('.spotlight').focus();
-          isSpotlightFocused = true;
-        }
-        // handle arrow keys and enter for navigating the autocomplete list
-        if (isSpotlightFocused) {
-          let items = spotlightAutocomplete.querySelectorAll('.spotlight-autocomplete-item');
-          var index = Array.from(items).findIndex(item => item.classList.contains('active'));
-          if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            if (index < items.length - 1) {
-              if (index >= 0) items[index].classList.remove('active');
-              items[++index].classList.add('active');
-              items[index].scrollIntoView({ block: 'nearest' });
-            }
-          } else if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            if (index > 0) {
-              items[index].classList.remove('active');
-              items[--index].classList.add('active');
-              items[index].scrollIntoView({ block: 'nearest' });
-            }
-          } else if (event.key === 'Enter') {
-            event.preventDefault();
-            if (index >= 0) {
-              // before navigating, we want to collect the page title
-              // and fill the search input with it, so that when user goes back,
-              // they see the title of the page they visited instead of the search query
-              let title = items[index].querySelector('span.d-block').textContent;
-              spotlightForm.querySelector('.spotlight').value = title;
-              // navigate to the selected page
-              items[index].click();
-            }
+          if (index < items.length - 1) {
+            if (index >= 0) items[index].classList.remove('active');
+            items[++index].classList.add('active');
+            items[index].scrollIntoView({ block: 'nearest' });
           }
-        }
-      });
-
-      // Example search function
-      function searchDocs(query) {
-        const pageLang = document.documentElement.dataset.lang || "";
-        const results = fuse.search(query).filter(r =>
-          !pageLang || (r.item.lang || "") === pageLang);
-        // results is an array of objects: { item, refIndex, ... }
-        spotlightInner.innerHTML = '';
-        if(results.length === 0) {
-          spotlightAutocomplete.classList.add('d-none');
-          return;
-        }
-        spotlightAutocomplete.classList.remove('d-none');
-        for (let r of results) {
-          let li = document.createElement('li');
-          let a = document.createElement('a');
-          a.classList.add('d-block', 'rounded-4', 'py-2', 'px-3', 'border-0', 'text-decoration-none', 'spotlight-autocomplete-item');
-          a.href = r.item.url != '/' ? `/${r.item.url}` : '/';
-          a.innerHTML = `<span class="d-block">${r.item.title}</span><span class="text-muted small d-block lh-sm">${r.item.description}</span>`;
-          li.appendChild(a);
-
-          // use provided indices to highlight matched terms
-          for (let match of r.matches) {
-            if (match.key === 'title' || match.key === 'description') {
-              // Find the corresponding span for title/description
-              let spanSelector = match.key === 'title' ? 'span.d-block' : 'span.text-muted';
-              let span = a.querySelector(spanSelector);
-              if (span) {
-                let text = span.textContent;
-                let highlighted = '';
-                let lastIndex = 0;
-                for (let range of match.indices) {
-                  let start = range[0];
-                  let end = range[1] + 1;
-                  highlighted += text.slice(lastIndex, start);
-                  highlighted += '<mark>' + text.slice(start, end) + '</mark>';
-                  lastIndex = end;
-                }
-                highlighted += text.slice(lastIndex);
-                span.innerHTML = highlighted;
-              }
-            }
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          if (index > 0) {
+            items[index].classList.remove('active');
+            items[--index].classList.add('active');
+            items[index].scrollIntoView({ block: 'nearest' });
           }
-          spotlightInner.appendChild(li);
+        } else if (event.key === 'Enter') {
+          if (index >= 0) {
+            event.preventDefault();
+            // before navigating, we want to collect the page title
+            // and fill the search input with it, so that when user goes back,
+            // they see the title of the page they visited instead of the search query
+            const title = items[index].querySelector('span.d-block').textContent;
+            input.value = title;
+            // navigate to the selected page
+            items[index].click();
+          }
+          // otherwise fall through to the native submit -> /search?q= (CSR page)
         }
       }
-  
-      let spotlight = document.querySelector('.spotlight');
+    });
 
-      spotlight.addEventListener('keydown', function(event) {
-        if (event.key === '/' && (event.metaKey || event.ctrlKey)) {
-          event.preventDefault();
-          spotlight.focus();
-        } else if(event.key === 'Escape') {
-          spotlightAutocomplete.classList.add('d-none');
+    function searchDocs(query) {
+      const results = runQuery(query);
+      // results is an array of objects: { item, refIndex, ... }
+      spotlightInner.innerHTML = '';
+      if (results.length === 0) {
+        spotlightAutocomplete.classList.add('d-none');
+        return;
+      }
+      spotlightAutocomplete.classList.remove('d-none');
+      for (const r of results) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.classList.add('d-block', 'rounded-4', 'py-2', 'px-3', 'border-0', 'text-decoration-none', 'spotlight-autocomplete-item');
+        a.href = resolveUrl(r.item.url);
+        a.innerHTML = `<span class="d-block">${r.item.title}</span><span class="text-muted small d-block lh-sm">${r.item.description}</span>`;
+        li.appendChild(a);
+
+        // use provided indices to highlight matched terms
+        for (const match of r.matches) {
+          if (match.key === 'title' || match.key === 'description') {
+            // Find the corresponding span for title/description
+            const spanSelector = match.key === 'title' ? 'span.d-block' : 'span.text-muted';
+            const span = a.querySelector(spanSelector);
+            if (span) {
+              const text = span.textContent;
+              let highlighted = '';
+              let lastIndex = 0;
+              for (const range of match.indices) {
+                const start = range[0];
+                const end = range[1] + 1;
+                highlighted += text.slice(lastIndex, start);
+                highlighted += '<mark>' + text.slice(start, end) + '</mark>';
+                lastIndex = end;
+              }
+              highlighted += text.slice(lastIndex);
+              span.innerHTML = highlighted;
+            }
+          }
         }
-      });
-  
-      spotlight.addEventListener('input', function(event) {
-        const query = event.target.value;
-        if(query.length <= 3) {
-          spotlightAutocomplete.classList.add('d-none');
-          return;
-        }
-        searchDocs(query);
-      });
+        spotlightInner.appendChild(li);
+      }
+    }
+
+    input.addEventListener('keydown', function(event) {
+      if (event.key === '/' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        input.focus();
+      } else if (event.key === 'Escape') {
+        spotlightAutocomplete.classList.add('d-none');
+      }
+    });
+
+    input.addEventListener('input', function(event) {
+      const query = event.target.value;
+      if (query.length < 2) {
+        spotlightAutocomplete.classList.add('d-none');
+        return;
+      }
+      searchDocs(query);
     });
   },
-  
+
   /**
    * Make sidebars sticky so they remain visible when scrolling down the page.
    */
@@ -288,7 +368,6 @@ const UI = {
     const extraPadding = 30; // px, adjust for pt-5 effect
     function updateSidebarTop() {
       for (const sidebar of sidebars) {
-        const scrollY = window.scrollY || window.pageYOffset;
         sidebar.style.top = (navbarHeight + extraPadding) + 'px';
       }
     }
@@ -308,7 +387,6 @@ const UI = {
       const navbar = document.querySelector('.navbar-container-area');
       const navbarHeight = navbar ? navbar.offsetHeight : 0;
       const target = document.getElementById(hash);
-      console.log(target)
       if (target) {
         const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
         window.scrollTo({
@@ -388,22 +466,6 @@ const UI = {
           location.href = url;
         }
       }).catch(() => location.href = url);
-  },
-
-  initShareMarkdown: function() {
-    document.querySelectorAll('[data-share-markdown]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const el = document.querySelector('#share-markdown-content');
-        if (!el) return;
-        const markdown = JSON.parse(el.textContent).markdown;
-        navigator.clipboard.writeText(markdown).then(() => {
-          const label = btn.querySelector('span.fw-bold');
-          const prev = label.textContent;
-          label.textContent = 'Copied!';
-          setTimeout(() => { label.textContent = prev }, 1500);
-        });
-      });
-    });
   },
 
   initShareButtons: function() {
@@ -536,53 +598,15 @@ const UI = {
 
 export default UI;
 
-// Expose globally: base.timl initializes the app from a classic
-// inline script (`UI.init(...)`), which cannot see module scope.
+// Expose globally for classic inline scripts (e.g. `UI.onReload(...)`),
+// which cannot see module scope.
 window.UI = UI;
 
+// Self-initialize on page load. This is the single init entry point.
 document.addEventListener('DOMContentLoaded', () => {
   UI.init({
     enableStickySidebar: true,
     enableTimeAgo: true,
     enableAnimatedAlerts: true
   });
-
-  const mainArea = document.querySelector('div[data-area="main"]');
-  const leftSidebar = document.querySelector('div[data-area="left"]');
-  const rightSidebar = document.querySelector('div[data-area="right"]');
-
-  // Load preferences from localStorage
-  let isLeftSidebarVisible = localStorage.getItem('leftSidebarVisible') !== 'false';
-  let isRightSidebarVisible = localStorage.getItem('rightSidebarVisible') !== 'false';
-
-  function updateMainAreaCols() {
-    if (!isLeftSidebarVisible && !isRightSidebarVisible) {
-      mainArea.classList.remove('col-lg-7', 'col-lg-9');
-      mainArea.classList.add('col-lg-12');
-    } else if (!isLeftSidebarVisible || !isRightSidebarVisible) {
-      mainArea.classList.remove('col-lg-7', 'col-lg-12');
-      mainArea.classList.add('col-lg-9');
-    } else {
-      mainArea.classList.remove('col-lg-9', 'col-lg-12');
-      mainArea.classList.add('col-lg-7');
-    }
-  }
-
-  function updateSidebarVisibility() {
-    if (isLeftSidebarVisible) {
-      leftSidebar.classList.remove('d-none');
-      leftSidebar.classList.add('d-lg-block');
-    } else {
-      leftSidebar.classList.remove('d-lg-block');
-      leftSidebar.classList.add('d-none');
-    }
-    if (isRightSidebarVisible) {
-      rightSidebar.classList.remove('d-none');
-      rightSidebar.classList.add('d-lg-block');
-    } else {
-      rightSidebar.classList.remove('d-lg-block');
-      rightSidebar.classList.add('d-none');
-    }
-  }
-
 });
