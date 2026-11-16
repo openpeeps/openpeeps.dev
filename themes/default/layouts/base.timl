@@ -16,11 +16,10 @@ html data-bs-theme="dark" data-lang=$this["currentLang"]
     if $this["currentLang"] != "":
       for $tr in items($this["translations"]):
         link rel="alternate" hreflang=$tr["lang"] href=$this["site"]["baseUrl"] & $tr["url"]
-
   body
-    div.container-fluid > div.row > div.col-lg-12
+    div.container-fluid > div.row > div.col-lg-10.mx-auto
       @include "header"
-      div.row > div.container > div.row > div.col-lg-7.mx-auto
+      div.row > div.container-fluid > div.row > div.col-lg-7.mx-auto
         // The `@view` macro is a special macro that injects
         // the content of the specific view into this layout.
         @view

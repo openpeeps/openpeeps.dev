@@ -3,8 +3,8 @@ script id="share-markdown-content" type="application/json"
     markdown: $this["post"]["content_markdown"]
   })
 
-div.container-fluid.my-4 > div.row
-  div.col-xl-8.col-12
+div.container-fluid.my-4 > div.row.g-4
+  div.col-xl-9.col-12
     div.row.mb-4 > div.col-12
       if len($this["post"]["meta"]["tags"]) > 0:
         div.d-flex.flex-wrap.gap-2
@@ -55,8 +55,8 @@ div.container-fluid.my-4 > div.row
               span.d-block.mt-1.h6.text-light: $nextItem["title"]
 
   if len($this["post"]["toc"]) > 0:
-    div.col-lg-4 > div.toc-sidebar.sticky-top style="top: 80px"
+    div.col-lg-3 > div.sidebar-right.sticky-top style="top: 80px"
       h6.fw-bold.mt-0: "In this article"
-      div.pb-5 style="max-height: 700px; overflow-y: auto" > ul.list-unstyled.mb-0
+      div.pb-5.table-of-contents style="max-height: 700px; overflow-y: auto" > ul.list-unstyled.mb-0
         for $heading in items($this["post"]["toc"]):
           li.mb-2 > a.text-decoration-none href="#" & $heading["id"]: $heading["title"]
